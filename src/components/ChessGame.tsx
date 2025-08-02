@@ -4,7 +4,11 @@ import { Chessboard } from 'react-chessboard';
 import { GameSettings } from '../types/game';
 import { MoveLogEntry } from '../types/move';
 import StockfishEngine from '../utils/stockfish';
+import ChessAnalyzer from '../utils/chessAnalysis';
 import MoveLog from './MoveLog';
+import WinningPercentageBar from './WinningPercentageBar';
+import OpponentAnalysisWindow from './OpponentAnalysisWindow';
+import PlayerSuggestionsWindow from './PlayerSuggestionsWindow';
 
 interface ChessGameProps {
   gameSettings: GameSettings;
@@ -20,7 +24,9 @@ const ChessGame: React.FC<ChessGameProps> = ({ gameSettings, onBackToMenu, onBac
   const [optionSquares, setOptionSquares] = useState<any>({});
   const [isThinking, setIsThinking] = useState(false);
   const [moveHistory, setMoveHistory] = useState<MoveLogEntry[]>([]);
+  const [currentAnalysis, setCurrentAnalysis] = useState<any>(null);
   const stockfishRef = useRef<StockfishEngine | null>(null);
+  const analyzerRef = useRef<ChessAnalyzer | null>(null);
 
   const gamePosition = useMemo(() => game.fen(), [game]);
   const currentPlayer = useMemo(() => game.turn() === 'w' ? 'White' : 'Black', [game]);
@@ -40,10 +46,14 @@ const ChessGame: React.FC<ChessGameProps> = ({ gameSettings, onBackToMenu, onBac
     return currentColor === gameSettings.humanColor;
   }, [game, isVsCpu, gameSettings.humanColor]);
 
-  // Initialize Stockfish for CPU games
+  // Initialize Stockfish for CPU games and Chess Analyzer
   useEffect(() => {
     if (isVsCpu && !stockfishRef.current) {
       stockfishRef.current = new StockfishEngine();
+    }
+    
+    if (!analyzerRef.current) {
+      analyzerRef.current = new ChessAnalyzer();
     }
     
     return () => {
@@ -61,6 +71,71 @@ const ChessGame: React.FC<ChessGameProps> = ({ gameSettings, onBackToMenu, onBac
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isVsCpu, isHumanTurn, isGameOver, game]);
+
+  async function analyzePosition(move: any, gameCopy: Chess) {
+    if (!analyzerRef.current) return;
+    
+    try {
+      const isHumanWhite = gameSettings.humanColor === 'white';
+      const moveColor = move.color === 'w' ? 'white' : 'black';
+      
+      // Clear previous analysis immediately
+      setCurrentAnalysis(null);
+      
+      // Always trigger fresh analysis after any move
+      console.log('🔄 Triggering fresh analysis for position:', gameCopy.fen());
+      console.log('📝 Last move:', move);
+      
+      // Create updated move history with the current move
+      const updatedMoveHistory = [...moveHistory, {
+        id: `${Date.now()}-${Math.random()}`,
+        moveNumber: Math.ceil((moveHistory.length + 1) / 2),
+        color: moveColor,
+        piece: move.piece,
+        from: move.from,
+        to: move.to,
+        notation: move.san,
+        captured: move.captured,
+        isCheck: gameCopy.isCheck(),
+        isCheckmate: gameCopy.isCheckmate(),
+        isStalemate: gameCopy.isStalemate(),
+        isCastling: move.flags.includes('k') || move.flags.includes('q'),
+        isEnPassant: move.flags.includes('e'),
+        promotion: move.promotion,
+        timestamp: new Date()
+      }];
+      
+      console.log('📋 Sending complete game context to AI:', {
+        fen: gameCopy.fen(),
+        moveCount: updatedMoveHistory.length,
+        lastMove: move,
+        fullHistory: updatedMoveHistory
+      });
+      
+      const analysis = await analyzerRef.current.analyzePosition(
+        gameCopy.fen(),
+        move,
+        isHumanWhite,
+        updatedMoveHistory
+      );
+      
+      const isNowHumanTurn = isVsCpu ? 
+        (gameCopy.turn() === 'w' ? isHumanWhite : !isHumanWhite) :
+        true;
+      
+      // Save fresh analysis to state for UI components
+      setCurrentAnalysis(analysis);
+      
+      // Also log to console
+      analyzerRef.current.logAnalysis(analysis, isNowHumanTurn);
+      
+      console.log('✅ Analysis complete:', analysis);
+      
+    } catch (error) {
+      console.error('Analysis failed:', error);
+      setCurrentAnalysis(null);
+    }
+  }
 
   function logMove(move: any, gameCopy: Chess) {
     const moveNumber = Math.ceil(moveHistory.length / 2) + 1;
@@ -83,6 +158,9 @@ const ChessGame: React.FC<ChessGameProps> = ({ gameSettings, onBackToMenu, onBac
     };
     
     setMoveHistory(prev => [...prev, moveEntry]);
+    
+    // Trigger analysis after move is logged
+    analyzePosition(move, gameCopy);
   }
 
   async function makeCpuMove() {
@@ -246,6 +324,9 @@ const ChessGame: React.FC<ChessGameProps> = ({ gameSettings, onBackToMenu, onBac
     setShowPromotionDialog(false);
     setOptionSquares({});
     setMoveHistory([]);
+    setCurrentAnalysis(null);
+    setIsThinking(false);
+    console.log('🔄 Game reset - analysis cleared');
   }
 
   return (
@@ -347,16 +428,28 @@ const ChessGame: React.FC<ChessGameProps> = ({ gameSettings, onBackToMenu, onBac
         </button>
       </div>
 
+      {/* Winning Percentage Bar */}
+      {currentAnalysis && (
+        <div style={{ marginBottom: '20px', maxWidth: '800px', width: '100%', margin: '0 auto 20px auto' }}>
+          <WinningPercentageBar 
+            percentage={currentAnalysis.winningPercentage}
+            sideBetter={currentAnalysis.sideBetter}
+          />
+        </div>
+      )}
+
       {/* Main Game Area */}
       <div style={{
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'flex-start',
-        gap: '30px',
+        gap: '20px',
         flex: 1,
+        maxWidth: '1400px',
+        margin: '0 auto',
         flexWrap: 'wrap'
       }}>
-        {/* Move Log */}
+        {/* Left Side - Move Log */}
         <div style={{ 
           minWidth: '320px',
           maxWidth: '320px'
@@ -368,10 +461,13 @@ const ChessGame: React.FC<ChessGameProps> = ({ gameSettings, onBackToMenu, onBac
           />
         </div>
 
-        {/* Chess Board */}
+        {/* Center - Chess Board */}
         <div style={{ 
           width: '560px', 
-          maxWidth: '90vw'
+          maxWidth: '90vw',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center'
         }}>
           <Chessboard
             options={{
@@ -382,6 +478,30 @@ const ChessGame: React.FC<ChessGameProps> = ({ gameSettings, onBackToMenu, onBac
               animationDurationInMs: 200,
               allowDragging: false,
             }}
+          />
+        </div>
+
+        {/* Right Side - Both Analysis Windows */}
+        <div style={{ 
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '20px',
+          minWidth: '280px'
+        }}>
+          {/* Opponent Analysis Window */}
+          <OpponentAnalysisWindow
+            opponentMoveAnalysis={currentAnalysis?.opponentMoveAnalysis || ""}
+            positionEvaluation={currentAnalysis?.positionEvaluation || ""}
+            opponentColor={isVsCpu ? (gameSettings.humanColor === 'white' ? 'black' : 'white') : 'black'}
+            isVisible={!!currentAnalysis}
+          />
+          
+          {/* Player Suggestions Window */}
+          <PlayerSuggestionsWindow
+            suggestedMoves={currentAnalysis?.suggestedMoves || []}
+            playerColor={isVsCpu ? (gameSettings.humanColor || 'white') : 'white'}
+            isVisible={!!currentAnalysis}
+            isPlayerTurn={isHumanTurn}
           />
         </div>
       </div>
