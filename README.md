@@ -1,46 +1,98 @@
-# Getting Started with Create React App
+# ♟️ Agentic-ChessMaster
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Agentic-ChessMaster is an AI-powered interactive chess platform designed to enhance the gameplay experience for both human-vs-human and human-vs-AI scenarios. Built on a hybrid architecture with intelligent agents and cloud infrastructure, this project integrates reasoning engines, move tracking, and voice interactions to help players learn, analyze, and enjoy chess like never before.
 
-## Available Scripts
+---
 
-In the project directory, you can run:
+## 🚀 Project Inspiration
 
-### `npm start`
+In traditional online chess platforms, players often struggle to understand the reasoning behind recommended moves or to review their strategies meaningfully. Agentic-ChessMaster is inspired by the desire to provide a more agentic and explainable chess experience using advanced AI systems. The platform combines:
+- Real-time strategy analysis
+- Explainable move reasoning
+- Voice-assisted interaction as a fun companion
+- Seamless UI features for learning and feedback
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+---
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+## Key Features
 
-### `npm test`
+### ✅ Dual Play Modes
+- **Human vs Human**: Two-player mode
+- **Human vs CPU (Stockfish)**: Compete against the classic Stockfish engine with added strategy and voice analysis.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### ✅ Intelligent Agent Modules
+- **AI Strategy Analysis Agent**  
+  Powered by Claude 3.5 (Anthropic), this agent analyzes the current FEN game state and provides strategy reasoning and suggestions for the next move.
+  
+- **AI Companion Voice Agent**  
+  Uses the VAPI API to deliver spoken feedback, suggestions, and reasoning—great for immersive or educational play.
 
-### `npm run build`
+- **Move Logging Feature**  
+  Logs each move and stores it in Google Cloud (Local Cache Store) for analysis and replay.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+---
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+## System Architecture
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+![System Architecture](https://github.com/KikiSpace/agenticChessTutor/blob/main/chessmaster/assets/arch.png?raw=true)
 
-### `npm run eject`
+### Frontend
+- Built using `React` with custom chess UI (e.g., `react-chessboard`)
+- Pages:
+  - **Start Page**
+  - **Play Page: Human vs Human**
+  - **Play Page: Human vs CPU (Stockfish)**
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+### UI Components
+- `Move Logs` (for display and storage)
+- `AI Strategy Analysis Agent` (Claude-3.5)
+- `AI Companion Voice Agent` (VAPI)
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+### Backend Services
+- **Google Cloud Local Cache Store** for saving move logs
+- **Claude-3.5** for natural language strategy generation
+- **VAPI API** for voice assistant responses
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+---
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+## UI Flow
 
-## Learn More
+1. 🏁 **Start Page**
+    - Users select between *Human vs Human* or *Human vs CPU* modes.
+    ![gameselect](https://media.githubusercontent.com/media/KikiSpace/agenticChessTutor/main/chessmaster/assets/gameselect.GIF)
+2. ♟️ **Play Page**
+    - Depending on the selected mode, the game UI is rendered.
+    ![pawnplay](https://media.githubusercontent.com/media/KikiSpace/agenticChessTutor/main/chessmaster/assets/pawnselect.GIF)
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+3. 🧠 **AI Strategy Analysis Agent**
+    - Fetches current game FEN and sends it to Claude-3.5.
+    - Returns the game situation explanation, reasoning, and next move suggestions.
+    ![gameplay](https://media.githubusercontent.com/media/KikiSpace/agenticChessTutor/main/chessmaster/assets/gameplay.GIF)
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+4. 🗣️ **AI Voice Companion Agent**
+    - You can have a lively conversation about the current board situation with your AI Voice Agent.
+
+5. 💾 **Move Logs**
+    - Game moves are recorded and cached via Google Cloud’s Local Cache Store.
+    ![movelog](https://media.githubusercontent.com/media/KikiSpace/agenticChessTutor/main/chessmaster/assets/movelog.GIF)
+
+---
+
+## Tech Stack
+
+- **Frontend**: React, TypeScript, react-chessboard
+- **AI Agents**: Claude 3.5 (Anthropic), VAPI API
+- **Storage**: Google Cloud Local Cache
+- **Chess Engine**: Stockfish
+
+---
+
+## Contributor
+
+Coming soon! Stay tuned for contribution guidelines and open-source collaboration.
+
+---
+
+## 📜 License
+
+MIT License. See `LICENSE` for details.
