@@ -2,7 +2,9 @@ import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { Chess } from 'chess.js';
 import { Chessboard } from 'react-chessboard';
 import { GameSettings } from '../types/game';
+import { MoveLogEntry } from '../types/move';
 import StockfishEngine from '../utils/stockfish';
+import MoveLog from './MoveLog';
 
 interface ChessGameProps {
   gameSettings: GameSettings;
@@ -17,6 +19,7 @@ const ChessGame: React.FC<ChessGameProps> = ({ gameSettings, onBackToMenu, onBac
   const [showPromotionDialog, setShowPromotionDialog] = useState(false);
   const [optionSquares, setOptionSquares] = useState<any>({});
   const [isThinking, setIsThinking] = useState(false);
+  const [moveHistory, setMoveHistory] = useState<MoveLogEntry[]>([]);
   const stockfishRef = useRef<StockfishEngine | null>(null);
 
   const gamePosition = useMemo(() => game.fen(), [game]);
@@ -59,6 +62,29 @@ const ChessGame: React.FC<ChessGameProps> = ({ gameSettings, onBackToMenu, onBac
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isVsCpu, isHumanTurn, isGameOver, game]);
 
+  function logMove(move: any, gameCopy: Chess) {
+    const moveNumber = Math.ceil(moveHistory.length / 2) + 1;
+    const moveEntry: MoveLogEntry = {
+      id: `${Date.now()}-${Math.random()}`,
+      moveNumber,
+      color: move.color === 'w' ? 'white' : 'black',
+      piece: move.piece,
+      from: move.from,
+      to: move.to,
+      notation: move.san,
+      captured: move.captured,
+      isCheck: gameCopy.isCheck(),
+      isCheckmate: gameCopy.isCheckmate(),
+      isStalemate: gameCopy.isStalemate(),
+      isCastling: move.flags.includes('k') || move.flags.includes('q'),
+      isEnPassant: move.flags.includes('e'),
+      promotion: move.promotion,
+      timestamp: new Date()
+    };
+    
+    setMoveHistory(prev => [...prev, moveEntry]);
+  }
+
   async function makeCpuMove() {
     if (!stockfishRef.current || isThinking) return;
     
@@ -80,6 +106,7 @@ const ChessGame: React.FC<ChessGameProps> = ({ gameSettings, onBackToMenu, onBac
         });
         
         if (move) {
+          logMove(move, gameCopy);
           setGame(gameCopy);
         }
       }
@@ -154,6 +181,7 @@ const ChessGame: React.FC<ChessGameProps> = ({ gameSettings, onBackToMenu, onBac
         return;
       }
 
+      logMove(move, gameCopy);
       setGame(gameCopy);
       setMoveFrom('');
       setMoveTo(null);
@@ -193,12 +221,16 @@ const ChessGame: React.FC<ChessGameProps> = ({ gameSettings, onBackToMenu, onBac
   function onPromotionPieceSelect(piece?: string) {
     if (piece && moveFrom && moveTo) {
       const gameCopy = new Chess(game.fen());
-      gameCopy.move({
+      const move = gameCopy.move({
         from: moveFrom,
         to: moveTo,
         promotion: piece[1].toLowerCase() || 'q',
       });
-      setGame(gameCopy);
+      
+      if (move) {
+        logMove(move, gameCopy);
+        setGame(gameCopy);
+      }
     }
 
     setMoveFrom('');
@@ -213,12 +245,19 @@ const ChessGame: React.FC<ChessGameProps> = ({ gameSettings, onBackToMenu, onBac
     setMoveTo(null);
     setShowPromotionDialog(false);
     setOptionSquares({});
+    setMoveHistory([]);
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '20px', minHeight: '100vh', background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}>
+    <div style={{ 
+      minHeight: '100vh', 
+      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+      padding: '20px',
+      display: 'flex',
+      flexDirection: 'column'
+    }}>
       {/* Navigation */}
-      <div style={{ position: 'absolute', top: '20px', left: '20px' }}>
+      <div style={{ marginBottom: '20px' }}>
         <button
           onClick={isVsCpu ? onBackToColorSelection : onBackToMenu}
           style={{
@@ -250,6 +289,7 @@ const ChessGame: React.FC<ChessGameProps> = ({ gameSettings, onBackToMenu, onBac
         </button>
       </div>
 
+      {/* Game Header */}
       <div style={{ 
         marginBottom: '20px', 
         textAlign: 'center',
@@ -307,17 +347,43 @@ const ChessGame: React.FC<ChessGameProps> = ({ gameSettings, onBackToMenu, onBac
         </button>
       </div>
 
-      <div style={{ width: '560px', maxWidth: '90vw' }}>
-        <Chessboard
-          options={{
-            position: gamePosition,
-            onSquareClick: onSquareClick,
-            squareStyles: optionSquares,
-            boardOrientation: isVsCpu ? (gameSettings.humanColor || 'white') : 'white',
-            animationDurationInMs: 200,
-            allowDragging: false,
-          }}
-        />
+      {/* Main Game Area */}
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'flex-start',
+        gap: '30px',
+        flex: 1,
+        flexWrap: 'wrap'
+      }}>
+        {/* Move Log */}
+        <div style={{ 
+          minWidth: '320px',
+          maxWidth: '320px'
+        }}>
+          <MoveLog 
+            moves={moveHistory} 
+            isVsCpu={isVsCpu} 
+            humanColor={gameSettings.humanColor}
+          />
+        </div>
+
+        {/* Chess Board */}
+        <div style={{ 
+          width: '560px', 
+          maxWidth: '90vw'
+        }}>
+          <Chessboard
+            options={{
+              position: gamePosition,
+              onSquareClick: onSquareClick,
+              squareStyles: optionSquares,
+              boardOrientation: isVsCpu ? (gameSettings.humanColor || 'white') : 'white',
+              animationDurationInMs: 200,
+              allowDragging: false,
+            }}
+          />
+        </div>
       </div>
 
       {showPromotionDialog && (
