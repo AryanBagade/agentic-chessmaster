@@ -9,6 +9,7 @@ import MoveLog from './MoveLog';
 import WinningPercentageBar from './WinningPercentageBar';
 import OpponentAnalysisWindow from './OpponentAnalysisWindow';
 import PlayerSuggestionsWindow from './PlayerSuggestionsWindow';
+import VoiceChessBuddy from './VoiceChessBuddy';
 
 interface ChessGameProps {
   gameSettings: GameSettings;
@@ -546,6 +547,16 @@ const ChessGame: React.FC<ChessGameProps> = ({ gameSettings, onBackToMenu, onBac
           </div>
         </div>
       )}
+
+      {/* Voice Chess Buddy */}
+      <VoiceChessBuddy
+        gameState={game}
+        moveHistory={moveHistory}
+        isVsCpu={isVsCpu}
+        humanColor={gameSettings.humanColor || 'white'}
+        currentAnalysis={currentAnalysis}
+        isVisible={true}
+      />
     </div>
   );
 };

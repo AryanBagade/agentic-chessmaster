@@ -12,6 +12,7 @@
     "@types/node": "^16.18.126",
     "@types/react": "^19.1.9",
     "@types/react-dom": "^19.1.7",
+    "@vapi-ai/web": "^2.3.8",
     "chess.js": "^1.4.0",
     "react": "^19.1.1",
     "react-chessboard": "^5.2.1",
