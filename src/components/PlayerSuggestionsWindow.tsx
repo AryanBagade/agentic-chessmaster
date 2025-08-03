@@ -11,13 +11,15 @@ interface PlayerSuggestionsWindowProps {
   playerColor: 'white' | 'black';
   isVisible: boolean;
   isPlayerTurn: boolean;
+  isLoading?: boolean;
 }
 
 const PlayerSuggestionsWindow: React.FC<PlayerSuggestionsWindowProps> = ({ 
   suggestedMoves, 
   playerColor,
   isVisible,
-  isPlayerTurn 
+  isPlayerTurn,
+  isLoading = false
 }) => {
   const [selectedMove, setSelectedMove] = useState<number | null>(null);
 
@@ -109,7 +111,38 @@ const PlayerSuggestionsWindow: React.FC<PlayerSuggestionsWindowProps> = ({
 
       {/* Content */}
       <div style={{ padding: '15px' }}>
-        {!isPlayerTurn ? (
+        {isLoading ? (
+          <div style={{
+            textAlign: 'center',
+            color: 'rgba(255, 255, 255, 0.6)',
+            fontSize: '0.9rem',
+            padding: '20px',
+            fontStyle: 'italic'
+          }}>
+            <div style={{ 
+              fontSize: '2rem', 
+              marginBottom: '10px',
+              animation: 'pulse 1.5s ease-in-out infinite'
+            }}>🧠</div>
+            Analyzing opponent's move...
+            <div style={{
+              width: '40px',
+              height: '3px',
+              background: 'rgba(255, 255, 255, 0.2)',
+              borderRadius: '2px',
+              overflow: 'hidden',
+              margin: '10px auto'
+            }}>
+              <div style={{
+                width: '30%',
+                height: '100%',
+                background: 'linear-gradient(90deg, #4ecdc4, #44a08d)',
+                borderRadius: '2px',
+                animation: 'pulse 1.5s ease-in-out infinite'
+              }} />
+            </div>
+          </div>
+        ) : !isPlayerTurn ? (
           <div style={{
             textAlign: 'center',
             color: 'rgba(255, 255, 255, 0.6)',
@@ -129,7 +162,7 @@ const PlayerSuggestionsWindow: React.FC<PlayerSuggestionsWindowProps> = ({
             fontStyle: 'italic'
           }}>
             <div style={{ fontSize: '2rem', marginBottom: '10px' }}>🤔</div>
-            Analyzing moves...
+            Ready for next move...
           </div>
         ) : (
           <>

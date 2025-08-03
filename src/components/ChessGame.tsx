@@ -26,6 +26,7 @@ const ChessGame: React.FC<ChessGameProps> = ({ gameSettings, onBackToMenu, onBac
   const [isThinking, setIsThinking] = useState(false);
   const [moveHistory, setMoveHistory] = useState<MoveLogEntry[]>([]);
   const [currentAnalysis, setCurrentAnalysis] = useState<any>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const stockfishRef = useRef<StockfishEngine | null>(null);
   const analyzerRef = useRef<ChessAnalyzer | null>(null);
 
@@ -81,7 +82,8 @@ const ChessGame: React.FC<ChessGameProps> = ({ gameSettings, onBackToMenu, onBac
       const isHumanWhite = gameSettings.humanColor === 'white';
       const moveColor = move.color === 'w' ? 'white' : 'black';
       
-      // Clear previous analysis immediately
+      // Start analysis loading
+      setIsAnalyzing(true);
       setCurrentAnalysis(null);
       
       // Create updated move history with the current move
@@ -123,6 +125,9 @@ const ChessGame: React.FC<ChessGameProps> = ({ gameSettings, onBackToMenu, onBac
       
     } catch (error) {
       setCurrentAnalysis(null);
+    } finally {
+      // Stop analysis loading
+      setIsAnalyzing(false);
     }
   }
 
@@ -317,6 +322,7 @@ const ChessGame: React.FC<ChessGameProps> = ({ gameSettings, onBackToMenu, onBac
     setMoveHistory([]);
     setCurrentAnalysis(null);
     setIsThinking(false);
+    setIsAnalyzing(false);
   }
 
   return (
@@ -420,8 +426,43 @@ const ChessGame: React.FC<ChessGameProps> = ({ gameSettings, onBackToMenu, onBac
         </button>
       </div>
 
+      {/* Analysis Loading Indicator - Only in guided mode */}
+      {hasAIGuide && isAnalyzing && (
+        <div style={{ 
+          marginBottom: '20px', 
+          maxWidth: '800px', 
+          width: '100%', 
+          margin: '0 auto 20px auto',
+          background: 'rgba(255, 255, 255, 0.1)',
+          backdropFilter: 'blur(10px)',
+          borderRadius: '15px',
+          border: '1px solid rgba(255, 255, 255, 0.2)',
+          padding: '15px',
+          textAlign: 'center',
+          color: 'white'
+        }}>
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            gap: '10px',
+            fontSize: '14px'
+          }}>
+            <div style={{
+              width: '20px',
+              height: '20px',
+              border: '2px solid rgba(255, 255, 255, 0.3)',
+              borderTop: '2px solid white',
+              borderRadius: '50%',
+              animation: 'spin 1s linear infinite'
+            }}></div>
+            🧠 Analyzing opponent's move...
+          </div>
+        </div>
+      )}
+
       {/* Winning Percentage Bar - Only in guided mode */}
-      {hasAIGuide && currentAnalysis && (
+      {hasAIGuide && currentAnalysis && !isAnalyzing && (
         <div style={{ marginBottom: '20px', maxWidth: '800px', width: '100%', margin: '0 auto 20px auto' }}>
           <WinningPercentageBar 
             percentage={currentAnalysis.winningPercentage}
@@ -483,18 +524,19 @@ const ChessGame: React.FC<ChessGameProps> = ({ gameSettings, onBackToMenu, onBac
           }}>
             {/* Opponent Analysis Window */}
             <OpponentAnalysisWindow
-              opponentMoveAnalysis={currentAnalysis?.opponentMoveAnalysis || ""}
-              positionEvaluation={currentAnalysis?.positionEvaluation || ""}
+              opponentMoveAnalysis={isAnalyzing ? "🧠 Analyzing opponent's move..." : (currentAnalysis?.opponentMoveAnalysis || "")}
+              positionEvaluation={isAnalyzing ? "Analysis in progress..." : (currentAnalysis?.positionEvaluation || "")}
               opponentColor={isVsCpu ? (gameSettings.humanColor === 'white' ? 'black' : 'white') : 'black'}
-              isVisible={!!currentAnalysis}
+              isVisible={!!currentAnalysis || isAnalyzing}
             />
             
             {/* Player Suggestions Window */}
             <PlayerSuggestionsWindow
-              suggestedMoves={currentAnalysis?.suggestedMoves || []}
+              suggestedMoves={isAnalyzing ? [] : (currentAnalysis?.suggestedMoves || [])}
               playerColor={isVsCpu ? (gameSettings.humanColor || 'white') : 'white'}
-              isVisible={!!currentAnalysis}
+              isVisible={!!currentAnalysis || isAnalyzing}
               isPlayerTurn={isHumanTurn}
+              isLoading={isAnalyzing}
             />
           </div>
         )}
