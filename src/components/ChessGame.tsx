@@ -40,7 +40,8 @@ const ChessGame: React.FC<ChessGameProps> = ({ gameSettings, onBackToMenu, onBac
     return 'Playing';
   }, [game]);
 
-  const isVsCpu = gameSettings.mode === 'human-vs-cpu';
+  const isVsCpu = gameSettings.mode === 'human-vs-ai-basic' || gameSettings.mode === 'human-vs-ai-guided';
+  const hasAIGuide = gameSettings.hasAIGuide;
   const isHumanTurn = useMemo(() => {
     if (!isVsCpu) return true;
     const currentColor = game.turn() === 'w' ? 'white' : 'black';
@@ -83,10 +84,6 @@ const ChessGame: React.FC<ChessGameProps> = ({ gameSettings, onBackToMenu, onBac
       // Clear previous analysis immediately
       setCurrentAnalysis(null);
       
-      // Always trigger fresh analysis after any move
-      console.log('🔄 Triggering fresh analysis for position:', gameCopy.fen());
-      console.log('📝 Last move:', move);
-      
       // Create updated move history with the current move
       const updatedMoveHistory = [...moveHistory, {
         id: `${Date.now()}-${Math.random()}`,
@@ -106,12 +103,6 @@ const ChessGame: React.FC<ChessGameProps> = ({ gameSettings, onBackToMenu, onBac
         timestamp: new Date()
       }];
       
-      console.log('📋 Sending complete game context to AI:', {
-        fen: gameCopy.fen(),
-        moveCount: updatedMoveHistory.length,
-        lastMove: move,
-        fullHistory: updatedMoveHistory
-      });
       
       const analysis = await analyzerRef.current.analyzePosition(
         gameCopy.fen(),
@@ -127,13 +118,10 @@ const ChessGame: React.FC<ChessGameProps> = ({ gameSettings, onBackToMenu, onBac
       // Save fresh analysis to state for UI components
       setCurrentAnalysis(analysis);
       
-      // Also log to console
+      // Log analysis for UI components
       analyzerRef.current.logAnalysis(analysis, isNowHumanTurn);
       
-      console.log('✅ Analysis complete:', analysis);
-      
     } catch (error) {
-      console.error('Analysis failed:', error);
       setCurrentAnalysis(null);
     }
   }
@@ -160,8 +148,10 @@ const ChessGame: React.FC<ChessGameProps> = ({ gameSettings, onBackToMenu, onBac
     
     setMoveHistory(prev => [...prev, moveEntry]);
     
-    // Trigger analysis after move is logged
-    analyzePosition(move, gameCopy);
+    // Trigger analysis after move is logged (only in guided mode)
+    if (hasAIGuide) {
+      analyzePosition(move, gameCopy);
+    }
   }
 
   async function makeCpuMove() {
@@ -190,7 +180,7 @@ const ChessGame: React.FC<ChessGameProps> = ({ gameSettings, onBackToMenu, onBac
         }
       }
     } catch (error) {
-      console.error('Error making CPU move:', error);
+      // CPU move failed
     } finally {
       setIsThinking(false);
     }
@@ -327,7 +317,6 @@ const ChessGame: React.FC<ChessGameProps> = ({ gameSettings, onBackToMenu, onBac
     setMoveHistory([]);
     setCurrentAnalysis(null);
     setIsThinking(false);
-    console.log('🔄 Game reset - analysis cleared');
   }
 
   return (
@@ -383,7 +372,9 @@ const ChessGame: React.FC<ChessGameProps> = ({ gameSettings, onBackToMenu, onBac
         color: 'white'
       }}>
         <h1 style={{ margin: '0 0 15px 0', textShadow: '2px 2px 4px rgba(0,0,0,0.3)' }}>
-          {isVsCpu ? '🤖 Human vs CPU' : '👥 Human vs Human'}
+          {gameSettings.mode === 'human-vs-human' ? '👥 Human vs Human' :
+           gameSettings.mode === 'human-vs-ai-basic' ? '🤖 Human vs AI (Basic)' :
+           '🧠 Human vs AI (With Guide)'}
         </h1>
         
         {isVsCpu && (
@@ -429,8 +420,8 @@ const ChessGame: React.FC<ChessGameProps> = ({ gameSettings, onBackToMenu, onBac
         </button>
       </div>
 
-      {/* Winning Percentage Bar */}
-      {currentAnalysis && (
+      {/* Winning Percentage Bar - Only in guided mode */}
+      {hasAIGuide && currentAnalysis && (
         <div style={{ marginBottom: '20px', maxWidth: '800px', width: '100%', margin: '0 auto 20px auto' }}>
           <WinningPercentageBar 
             percentage={currentAnalysis.winningPercentage}
@@ -482,29 +473,31 @@ const ChessGame: React.FC<ChessGameProps> = ({ gameSettings, onBackToMenu, onBac
           />
         </div>
 
-        {/* Right Side - Both Analysis Windows */}
-        <div style={{ 
-          display: 'flex',
-          flexDirection: 'column',
-          gap: '20px',
-          minWidth: '280px'
-        }}>
-          {/* Opponent Analysis Window */}
-          <OpponentAnalysisWindow
-            opponentMoveAnalysis={currentAnalysis?.opponentMoveAnalysis || ""}
-            positionEvaluation={currentAnalysis?.positionEvaluation || ""}
-            opponentColor={isVsCpu ? (gameSettings.humanColor === 'white' ? 'black' : 'white') : 'black'}
-            isVisible={!!currentAnalysis}
-          />
-          
-          {/* Player Suggestions Window */}
-          <PlayerSuggestionsWindow
-            suggestedMoves={currentAnalysis?.suggestedMoves || []}
-            playerColor={isVsCpu ? (gameSettings.humanColor || 'white') : 'white'}
-            isVisible={!!currentAnalysis}
-            isPlayerTurn={isHumanTurn}
-          />
-        </div>
+        {/* Right Side - Analysis Windows (Only in guided mode) */}
+        {hasAIGuide && (
+          <div style={{ 
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '20px',
+            minWidth: '280px'
+          }}>
+            {/* Opponent Analysis Window */}
+            <OpponentAnalysisWindow
+              opponentMoveAnalysis={currentAnalysis?.opponentMoveAnalysis || ""}
+              positionEvaluation={currentAnalysis?.positionEvaluation || ""}
+              opponentColor={isVsCpu ? (gameSettings.humanColor === 'white' ? 'black' : 'white') : 'black'}
+              isVisible={!!currentAnalysis}
+            />
+            
+            {/* Player Suggestions Window */}
+            <PlayerSuggestionsWindow
+              suggestedMoves={currentAnalysis?.suggestedMoves || []}
+              playerColor={isVsCpu ? (gameSettings.humanColor || 'white') : 'white'}
+              isVisible={!!currentAnalysis}
+              isPlayerTurn={isHumanTurn}
+            />
+          </div>
+        )}
       </div>
 
       {showPromotionDialog && (

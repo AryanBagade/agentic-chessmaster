@@ -39,7 +39,6 @@ class ChessAnalyzer {
       const legalMoves = game.moves({ verbose: true });
       const topMoves = legalMoves.slice(0, 8).map(move => `${move.from}${move.to}`).join(', ');
       
-      console.log('🎯 LEGAL MOVES CALCULATED:', legalMoves.map(m => `${m.from}${m.to} (${m.san})`));
 
       // Create a fresh game instance to ensure accurate analysis
       const analysisGame = new Chess(currentFen);
@@ -66,14 +65,6 @@ class ChessAnalyzer {
         }
       }
       
-      // LOG EVERYTHING WE'RE SENDING TO AI
-      console.log('🚨 DEBUG - EXACT DATA BEING SENT TO ANTHROPIC:');
-      console.log('FEN:', currentFen);
-      console.log('Legal moves:', topMoves);
-      console.log('Move history:', fullMoveHistory);
-      console.log('Last move:', lastMove);
-      console.log('Board description:', boardDescription);
-      console.log('Human color:', humanColor);
       
       // Determine who to analyze for
       const currentTurnColor = analysisGame.turn() === 'w' ? 'white' : 'black';
@@ -176,21 +167,14 @@ Return ONLY the JSON.`;
 
       const responseText = response.content[0].type === 'text' ? response.content[0].text : '';
       
-      // LOG AI RESPONSE
-      console.log('🤖 RAW AI RESPONSE:', responseText);
-      
       try {
         const analysis = JSON.parse(responseText);
-        console.log('✅ PARSED AI ANALYSIS:', analysis);
         return analysis;
       } catch (parseError) {
-        console.error('❌ FAILED TO PARSE AI RESPONSE:', parseError);
-        console.error('❌ RAW RESPONSE WAS:', responseText);
         return this.getFallbackAnalysis(game, lastMove, humanColor);
       }
 
     } catch (error) {
-      console.error('Chess analysis failed:', error);
       return this.getFallbackAnalysis(new Chess(currentFen), lastMove, isHumanWhite ? 'white' : 'black');
     }
   }
@@ -236,20 +220,7 @@ Return ONLY the JSON.`;
   }
 
   logAnalysis(analysis: AnalysisResult, isHumanTurn: boolean) {
-    console.log('\n🏆 ===== CHESS ANALYSIS ===== 🏆');
-    console.log(`📊 Position: ${analysis.positionEvaluation}`);
-    console.log(`📈 Winning %: ${analysis.winningPercentage}% (${analysis.sideBetter} is better)`);
-    console.log(`🔍 Opponent's last move: ${analysis.opponentMoveAnalysis}`);
-    
-    if (isHumanTurn && analysis.suggestedMoves.length > 0) {
-      console.log('\n💡 SUGGESTED MOVES FOR YOU:');
-      analysis.suggestedMoves.forEach((suggestion, index) => {
-        const emoji = suggestion.priority === 'high' ? '⭐' : 
-                     suggestion.priority === 'medium' ? '✨' : '💭';
-        console.log(`${emoji} ${index + 1}. ${suggestion.move} - ${suggestion.explanation}`);
-      });
-    }
-    console.log('\n================================\n');
+    // Analysis complete - data ready for UI components
   }
 }
 

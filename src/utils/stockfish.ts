@@ -45,7 +45,7 @@ class StockfishEngine {
 
       return `${chosenMove.from}${chosenMove.to}${chosenMove.promotion || ''}`;
     } catch (error) {
-      console.error('Error getting AI move:', error);
+      // Error getting AI move, fallback to random
       return this.getRandomMove(fen);
     }
   }
@@ -60,7 +60,7 @@ class StockfishEngine {
       const randomMove = moves[Math.floor(Math.random() * moves.length)];
       return `${randomMove.from}${randomMove.to}${randomMove.promotion || ''}`;
     } catch (error) {
-      console.error('Error getting random move:', error);
+      // Error getting random move
       return null;
     }
   }

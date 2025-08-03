@@ -8,7 +8,7 @@ interface ColorSelectionProps {
 }
 
 const ColorSelection: React.FC<ColorSelectionProps> = ({ gameMode, onColorSelect, onBack }) => {
-  const isVsCpu = gameMode === 'human-vs-cpu';
+  const isVsCpu = gameMode === 'human-vs-ai-basic' || gameMode === 'human-vs-ai-guided';
 
   return (
     <div style={{
@@ -62,7 +62,7 @@ const ColorSelection: React.FC<ColorSelectionProps> = ({ gameMode, onColorSelect
           fontSize: '1.2rem',
           marginBottom: '40px'
         }}>
-          {isVsCpu ? 'Select which color you want to play as' : 'White plays first'}
+          {isVsCpu ? 'Select which color you want to play as against the AI' : 'White plays first'}
         </p>
 
         <div style={{
@@ -98,7 +98,7 @@ const ColorSelection: React.FC<ColorSelectionProps> = ({ gameMode, onColorSelect
             <div style={{ fontSize: '4rem', marginBottom: '15px' }}>♔</div>
             <h3 style={{ color: '#333', margin: '0 0 10px 0', fontSize: '1.5rem' }}>White</h3>
             <p style={{ color: '#666', margin: 0, fontSize: '1rem' }}>
-              {isVsCpu ? 'You play as White' : 'First player'}
+              {isVsCpu ? 'You play as White against AI' : 'First player'}
             </p>
           </div>
 
@@ -129,7 +129,7 @@ const ColorSelection: React.FC<ColorSelectionProps> = ({ gameMode, onColorSelect
             <div style={{ fontSize: '4rem', marginBottom: '15px', color: 'white' }}>♚</div>
             <h3 style={{ color: 'white', margin: '0 0 10px 0', fontSize: '1.5rem' }}>Black</h3>
             <p style={{ color: '#ccc', margin: 0, fontSize: '1rem' }}>
-              {isVsCpu ? 'You play as Black' : 'Second player'}
+              {isVsCpu ? 'You play as Black against AI' : 'Second player'}
             </p>
           </div>
         </div>
@@ -147,7 +147,12 @@ const ColorSelection: React.FC<ColorSelectionProps> = ({ gameMode, onColorSelect
               margin: 0,
               fontSize: '1rem'
             }}>
-              💡 The CPU will be powered by Stockfish engine for challenging gameplay
+              💡 The AI will be powered by Stockfish engine for challenging gameplay
+              {gameMode === 'human-vs-ai-guided' && (
+                <span style={{ display: 'block', marginTop: '5px' }}>
+                  🧠 Plus you'll get AI analysis and move suggestions!
+                </span>
+              )}
             </p>
           </div>
         )}

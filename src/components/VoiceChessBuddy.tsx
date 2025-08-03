@@ -27,35 +27,17 @@ const VoiceChessBuddy: React.FC<VoiceChessBuddyProps> = ({
 
   // Initialize VAPI
   useEffect(() => {
-    // Debug ALL environment variables
-    console.log('🐛 ALL ENV VARS:', process.env);
-    console.log('🐛 ANTHROPIC KEY:', process.env.REACT_APP_ANTHROPIC_API_KEY);
-    
     const apiKey = process.env.REACT_APP_VAPI_API_KEY;
     const assistantId = process.env.REACT_APP_VAPI_ASSISTANT_ID;
     
-    console.log('🔑 API Key:', apiKey);
-    console.log('🆔 Assistant ID:', assistantId);
-    
-    // Hardcode for testing
-    const hardcodedApiKey = '3c1f3d85-1c46-4991-8d35-95903bedbf9d';
-    const hardcodedAssistantId = '082aabbc-e4d8-4306-a342-5f0465fe4ace';
-    
-    console.log('🧪 Using hardcoded values for testing');
-    console.log('🔑 Hardcoded API Key:', hardcodedApiKey);
-    console.log('🆔 Hardcoded Assistant ID:', hardcodedAssistantId);
-    
-    if (hardcodedApiKey && hardcodedAssistantId) {
+    if (apiKey && assistantId) {
       try {
-        vapiRef.current = new Vapi(hardcodedApiKey);
+        vapiRef.current = new Vapi(apiKey);
         setupVapiEvents();
         setIsInitialized(true);
-        console.log('🎤 VAPI initialized successfully with hardcoded key');
       } catch (error) {
-        console.error('❌ Failed to initialize VAPI:', error);
+        // VAPI initialization failed
       }
-    } else {
-      console.warn('⚠️ VAPI API key or Assistant ID not found');
     }
   }, []);
 
@@ -65,24 +47,20 @@ const VoiceChessBuddy: React.FC<VoiceChessBuddyProps> = ({
     vapiRef.current.on('call-start', () => {
       setIsConnected(true);
       setIsListening(true);
-      console.log('🎤 Voice chat started');
     });
 
     vapiRef.current.on('call-end', () => {
       setIsConnected(false);
       setIsListening(false);
-      console.log('🔇 Voice chat ended');
     });
 
     vapiRef.current.on('message', (message: any) => {
       if (message.type === 'transcript') {
         setTranscript(`${message.role}: ${message.transcript}`);
-        console.log('📝 Voice transcript:', message);
       }
     });
 
     vapiRef.current.on('error', (error: any) => {
-      console.error('❌ VAPI Error:', error);
       setIsConnected(false);
       setIsListening(false);
     });
@@ -117,22 +95,14 @@ const VoiceChessBuddy: React.FC<VoiceChessBuddyProps> = ({
 
   const startVoiceChat = async () => {
     if (!vapiRef.current || !isInitialized) {
-      console.error('❌ VAPI not initialized');
       return;
     }
 
     try {
-      const hardcodedAssistantId = '082aabbc-e4d8-4306-a342-5f0465fe4ace';
-      
-      console.log('🎤 Starting voice chat with hardcoded Assistant ID:', hardcodedAssistantId);
-      console.log('🎤 Using VAPI instance:', vapiRef.current);
-      
-      // Simple start with just assistant ID
-      await vapiRef.current.start(hardcodedAssistantId);
-      
+      const assistantId = process.env.REACT_APP_VAPI_ASSISTANT_ID;
+      await vapiRef.current.start(assistantId);
     } catch (error) {
-      console.error('❌ Failed to start voice chat:', error);
-      console.error('❌ Error details:', error);
+      // Voice chat failed to start
     }
   };
 

@@ -49,33 +49,6 @@ const MainMenu: React.FC<MainMenuProps> = ({ onGameModeSelect }) => {
           gap: '20px'
         }}>
           <button
-            onClick={() => onGameModeSelect('human-vs-cpu')}
-            style={{
-              padding: '20px 40px',
-              fontSize: '1.5rem',
-              fontWeight: 'bold',
-              color: 'white',
-              background: 'linear-gradient(45deg, #FF6B6B, #FF8E53)',
-              border: 'none',
-              borderRadius: '15px',
-              cursor: 'pointer',
-              transition: 'all 0.3s ease',
-              boxShadow: '0 8px 25px rgba(255, 107, 107, 0.3)',
-              transform: 'translateY(0)'
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.transform = 'translateY(-5px)';
-              e.currentTarget.style.boxShadow = '0 15px 35px rgba(255, 107, 107, 0.4)';
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = '0 8px 25px rgba(255, 107, 107, 0.3)';
-            }}
-          >
-            🤖 Human vs CPU
-          </button>
-
-          <button
             onClick={() => onGameModeSelect('human-vs-human')}
             style={{
               padding: '20px 40px',
@@ -101,6 +74,74 @@ const MainMenu: React.FC<MainMenuProps> = ({ onGameModeSelect }) => {
           >
             👥 Human vs Human
           </button>
+
+          <button
+            onClick={() => onGameModeSelect('human-vs-ai-basic')}
+            style={{
+              padding: '20px 40px',
+              fontSize: '1.5rem',
+              fontWeight: 'bold',
+              color: 'white',
+              background: 'linear-gradient(45deg, #FF6B6B, #FF8E53)',
+              border: 'none',
+              borderRadius: '15px',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              boxShadow: '0 8px 25px rgba(255, 107, 107, 0.3)',
+              transform: 'translateY(0)'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-5px)';
+              e.currentTarget.style.boxShadow = '0 15px 35px rgba(255, 107, 107, 0.4)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 8px 25px rgba(255, 107, 107, 0.3)';
+            }}
+          >
+            🤖 Human vs AI (Basic)
+          </button>
+
+          <button
+            onClick={() => onGameModeSelect('human-vs-ai-guided')}
+            style={{
+              padding: '20px 40px',
+              fontSize: '1.5rem',
+              fontWeight: 'bold',
+              color: 'white',
+              background: 'linear-gradient(45deg, #9B59B6, #E74C3C)',
+              border: 'none',
+              borderRadius: '15px',
+              cursor: 'pointer',
+              transition: 'all 0.3s ease',
+              boxShadow: '0 8px 25px rgba(155, 89, 182, 0.3)',
+              transform: 'translateY(0)',
+              position: 'relative'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'translateY(-5px)';
+              e.currentTarget.style.boxShadow = '0 15px 35px rgba(155, 89, 182, 0.4)';
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'translateY(0)';
+              e.currentTarget.style.boxShadow = '0 8px 25px rgba(155, 89, 182, 0.3)';
+            }}
+          >
+            🧠 Human vs AI (With Guide)
+            <span style={{
+              position: 'absolute',
+              top: '-8px',
+              right: '-8px',
+              background: '#FFD700',
+              color: '#333',
+              fontSize: '0.7rem',
+              padding: '2px 6px',
+              borderRadius: '10px',
+              fontWeight: 'bold'
+            }}>
+              ✨ NEW
+            </span>
+          </button>
         </div>
 
         <div style={{
@@ -118,10 +159,12 @@ const MainMenu: React.FC<MainMenuProps> = ({ onGameModeSelect }) => {
             margin: 0,
             paddingLeft: '20px'
           }}>
-            <li>Full chess rules implementation</li>
-            <li>Stockfish AI engine for CPU opponent</li>
-            <li>Beautiful visual interface</li>
-            <li>Move validation and game status</li>
+            <li>🎤 <strong>Voice Chess Buddy</strong> - Talk about your game in real-time</li>
+            <li>♟️ Full chess rules with move validation</li>
+            <li>🤖 Stockfish AI engine for challenging gameplay</li>
+            <li>🧠 <strong>AI Guide Mode</strong> - Get move suggestions & analysis</li>
+            <li>📊 Position evaluation & winning percentages</li>
+            <li>✨ Beautiful glassmorphism interface</li>
           </ul>
         </div>
       </div>

@@ -12,12 +12,14 @@ function App() {
   });
 
   const handleGameModeSelect = (mode: GameMode) => {
-    setGameSettings({ mode });
+    const hasAIGuide = mode === 'human-vs-ai-guided';
+    setGameSettings({ mode, hasAIGuide });
+    
     if (mode === 'human-vs-human') {
       // For human vs human, skip color selection and start game
       setCurrentScreen('game');
     } else {
-      // For human vs CPU, show color selection
+      // For AI modes, show color selection
       setCurrentScreen('color-selection');
     }
   };
